@@ -90,7 +90,6 @@ class TestHasTimeBeforeScheduledTask:
         timetable = timetable_builder(
             start='2019-04-01 19:00:00', end='2019-04-01 23:00:00'
         )
-
         task = task_builder(kick_off='2019-04-01 16:00:00')
         result = has_time_before_scheduled_task(employee=employee, employee_shift_timetable=timetable, task=task)
         assert result is False

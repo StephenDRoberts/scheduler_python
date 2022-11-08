@@ -6,7 +6,7 @@ from formatters.format_preferences import format_preferences
 from formatters.format_priorities import format_priorities
 from formatters.format_schedule import format_schedule
 from formatters.transform import transform
-from joiners.schedule_info_joiner import combine_schedule_info
+from joiners.preferences_joiner import hydrate_preferences
 from parser.parse_csv import parse
 from joiners.match_info_joiner import combine_match_info
 from scheduler.schedule import schedule
@@ -31,16 +31,10 @@ def main():
     formatted_preferences_df = transform(raw_preferences, format_preferences)
 
     combined_match_info = combine_match_info(tasks_df, formatted_competitions_df, formatted_priorities_df)
+    complete_preferences = hydrate_preferences(formatted_preferences_df, formatted_competitions_df)
 
-    print(formatted_schedule_df)
-    print(formatted_preferences_df)
-    print("*****")
-    # combined_schedule_info = combine_schedule_info(formatted_schedule_df, formatted_preferences_df)
 
-    # print(combined_match_info)
-    # print(formatted_schedule_df)
-
-    schedule(combined_match_info, formatted_schedule_df, formatted_preferences_df)
+    schedule(combined_match_info, formatted_schedule_df, complete_preferences)
 
 
 if __name__ == '__main__':

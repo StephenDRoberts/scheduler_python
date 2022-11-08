@@ -2,6 +2,52 @@ from datetime import timedelta
 
 TASK_DURATION_HOURS = 4
 TASK_DURATION_HOURS_NON_PREFERENCE = 5
+SECONDS_IN_HOURS = 60 * 60
+
+
+def earmark_collector(collector, current_schedule_df, task, preference_squad):
+    # calculate employees rate of completion
+    rate = 1.0 if collector['squad'] == preference_squad else (TASK_DURATION_HOURS / TASK_DURATION_HOURS_NON_PREFERENCE)
+    hours_to_complete = TASK_DURATION_HOURS / rate
+
+    # get collectors scheduled task (employee ids are unique to each shift)
+    # TODO need to handle empty employee value rather than default to empty string
+
+    collector_timetable = current_schedule_df[current_schedule_df['employee'] == collector['employee']]
+
+    # check earliest time task can be picked up
+    time_task_is_ready_for_process = task['earliest_processing_datetime']
+    shift_start = collector['shift_start_datetime']
+    earliest_processing_start_given_shift = max(time_task_is_ready_for_process, shift_start)
+
+    # if collector_timetable is empty -> assign earliest time to task
+    if collector_timetable.empty:
+        collector_start = earliest_processing_start_given_shift
+    else:
+        #   get scheduled task start and end times
+        scheduled_task_start = min(collector_timetable['process_start'])
+        scheduled_task_end = max(collector_timetable['process_end'])
+
+        # can this task be completed before scheduled task scheduled_task_start
+        earliest_potential_end_time = earliest_processing_start_given_shift + timedelta(hours=hours_to_complete)
+
+        if earliest_potential_end_time <= scheduled_task_start:
+            collector_start = earliest_processing_start_given_shift
+        else:
+            collector_start = scheduled_task_end
+
+    full_completion_time = collector_start + timedelta(hours=hours_to_complete)
+    shift_end = collector['shift_end_datetime']
+    collector_end = min(shift_end, full_completion_time)
+    # calculate percentage of task complete
+    task_duration = timedelta.total_seconds(collector_end - collector_start) / SECONDS_IN_HOURS
+    percentage_of_task_complete = task_duration / hours_to_complete if task_duration != 0.0 else 0.0
+
+    collector['collector_start'] = collector_start
+    collector['collector_end'] = collector_end
+    collector['percentage_complete'] = percentage_of_task_complete
+
+    return collector
 
 
 def is_available_for_task(employee, timetable_df, task, preference_squad):
@@ -28,7 +74,7 @@ def calculate_pickup_and_completion_time(employee, timetable_df, task, rate):
 
     if has_empty_shift(employee_timetable):
         start = max(task['earliest_processing_datetime'], employee['shift_start_datetime'])
-        end = start + timedelta(hours=(TASK_DURATION_HOURS / rate)
+        end = start + timedelta(hours=(TASK_DURATION_HOURS / rate))
         return {
             'start': start,
             'end': end
