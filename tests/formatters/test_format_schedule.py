@@ -14,9 +14,9 @@ schedule = pd.DataFrame({
 
 def test_should_format_schedule_df():
     shift_a_start_time = pd.to_datetime('2019-04-01' + '10:00', format='%Y-%m-%d%H:%M')
-    shift_a_end_time = shift_a_start_time + timedelta(hours=8)
+    shift_a_end_time = pd.to_datetime('2019-04-01' + '18:00', format='%Y-%m-%d%H:%M')
     shift_b_start_time = pd.to_datetime('2019-04-02' + '18:00', format='%Y-%m-%d%H:%M')
-    shift_b_end_time = shift_b_start_time + timedelta(hours=8)
+    shift_b_end_time = pd.to_datetime('2019-04-03' + '02:00', format='%Y-%m-%d%H:%M')
 
 
     expected = pd.DataFrame({

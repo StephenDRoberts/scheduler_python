@@ -31,7 +31,7 @@ def format_schedule(df):
             # TODO - is this new object creation needed? feels like it's slowing the process down
             data = pd.DataFrame([row])
             data['employee'] = f'employee-{row["squad"]}-{row["date"]}-{staff_number + 1}'
-            print('here', data['quantity'].dtype)
+
             staff_schedule_df = pd.concat([staff_schedule_df, data], ignore_index=True)
 
     return staff_schedule_df

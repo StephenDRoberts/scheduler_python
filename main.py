@@ -1,3 +1,5 @@
+import sys
+
 from formatters.format_competitions import format_competitions
 from formatters.format_matches import format_matches_to_tasks
 from formatters.format_preferences import format_preferences
@@ -10,19 +12,21 @@ from scheduler.schedule import schedule
 
 
 def main():
-    raw_priorities = parse('./resources/priorities.csv')
+    #  TODO defensive coding when file corrupt
+    try:
+        raw_priorities = parse('./resources/priorities.csv')
+        raw_matches = parse('./resources/matches.csv')
+        raw_competitions = parse('./resources/competitions.csv')
+        raw_schedule = parse('./resources/schedule.csv')
+        raw_preferences = parse('./resources/preferences.csv')
+    except FileNotFoundError as file_not_found:
+        print(f"File not found: {file_not_found}")
+        sys.exit(1)
+
     formatted_priorities_df = transform(raw_priorities, format_priorities)
-
-    raw_matches = parse('./resources/matches.csv')
     tasks_df = transform(raw_matches, format_matches_to_tasks)
-
-    raw_competitions = parse('./resources/competitions.csv')
     formatted_competitions_df = transform(raw_competitions, format_competitions)
-
-    raw_schedule = parse('./resources/schedule.csv')
     formatted_schedule_df = transform(raw_schedule, format_schedule)
-
-    raw_preferences = parse('./resources/preferences.csv')
     preferences_dict = transform(raw_preferences, format_preferences)
 
     combined_match_info = combine_match_info(tasks_df, formatted_competitions_df, formatted_priorities_df)
@@ -33,6 +37,7 @@ def main():
     print(formatted_schedule_df)
 
     schedule(combined_match_info, formatted_schedule_df, preferences_dict)
+
 
 if __name__ == '__main__':
     main()
