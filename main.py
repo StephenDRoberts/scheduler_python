@@ -27,7 +27,7 @@ def main():
     tasks_df = transform(raw_matches, format_matches_to_tasks)
     formatted_competitions_df = transform(raw_competitions, format_competitions)
     formatted_schedule_df = transform(raw_schedule, format_schedule)
-    preferences_dict = transform(raw_preferences, format_preferences)
+    formatted_preferences_df = transform(raw_preferences, format_preferences)
 
     combined_match_info = combine_match_info(tasks_df, formatted_competitions_df, formatted_priorities_df)
     #  TODO delete underlying function
@@ -36,7 +36,7 @@ def main():
     # print(combined_match_info)
     print(formatted_schedule_df)
 
-    schedule(combined_match_info, formatted_schedule_df, preferences_dict)
+    schedule(combined_match_info, formatted_schedule_df, formatted_preferences_df)
 
 
 if __name__ == '__main__':

@@ -50,7 +50,7 @@ def schedule(tasks, employees, preferences):
 
                     # fetch preferred squad
                     preferred_squad = preferences[preferences['competition'] == task['competition']]['squad'].iloc[0]
-
+                    print(preferences)
                     # TODO is there a partition function for this?
                     # filter or sort employees that have expertise in the competition
 
