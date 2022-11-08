@@ -38,7 +38,7 @@ def schedule(tasks, employees, preferences):
                 # filter out any employees who can't pick up task in their shift
                 #  TODO remove so it processes everyone
                 if task_index == 0:
-
+                    print(task)
                     available_employees = employees_on_shift[
                         employees_on_shift.apply(is_available_for_task, axis=1, args=(employee_timetable, task))]
 
