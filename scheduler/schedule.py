@@ -4,31 +4,33 @@ import pandas as pd
 from termcolor import colored
 
 from constants.constants import MIN_TASK_DURATION_HOURS, NON_PREFERENCE_TIME_ADJUSTMENT_HOURS
+from scheduler.helpers.create_empty_dataframes import create_empty_df_from_template
 from scheduler.helpers.employee_helpers import earmark_collector
 from writer.write import write_to_csv
 
 
-def schedule(tasks, employees, preferences):
-    sorted_employees = employees.sort_values(by='shift_start_datetime', ascending=True)
-    sorted_tasks = tasks.sort_values(by=['processing_deadline', 'priority_class', 'match_id'],
-                                     ascending=[True, True, True])
+def schedule(tasks, collectors, preferences):
+    sorted_collectors_by_shift = collectors.sort_values(by='shift_start_datetime', ascending=True)
+    sorted_tasks_by_priority = tasks.sort_values(
+        by=['processing_deadline', 'priority_class', 'match_id'], ascending=[True, True, True]
+    )
 
-    unique_shift_ends = sorted_employees['shift_end_datetime'].unique()
+    unique_shift_ends = sorted_collectors_by_shift['shift_end_datetime'].unique()
 
-    processed_tasks = sorted_tasks.copy(deep=False)
-    processed_tasks.astype(sorted_tasks.dtypes.to_dict())
-    processed_tasks = processed_tasks.iloc[0:0]
+    # Create empty dataframes to track progress
+    processed_tasks = create_empty_df_from_template(sorted_tasks_by_priority)
+    partially_processed_tasks = create_empty_df_from_template(
+        sorted_tasks_by_priority, {
+            'percentage_complete': 0,
+            'process_start': datetime.now(),
+            'process_end': datetime.now(),
+        }
+    )
+    scheduled_tasks = create_empty_df_from_template(
+        sorted_tasks_by_priority, {
+            'employee': ''
+        })
 
-    partially_processed_tasks = sorted_tasks.copy(deep=False)
-    partially_processed_tasks.astype(sorted_tasks.dtypes.to_dict())
-    partially_processed_tasks['percentage_complete'] = 0.
-    partially_processed_tasks['process_end'] = datetime.now()
-    partially_processed_tasks = partially_processed_tasks.iloc[0:0]
-
-    scheduled_tasks = sorted_tasks.copy(deep=False)
-    scheduled_tasks.astype(sorted_tasks.dtypes.to_dict())
-    scheduled_tasks = scheduled_tasks.iloc[0:0]
-    scheduled_tasks['employee'] = ''
 
     for shift_index, shift_end in enumerate(unique_shift_ends):
         partials_for_todays_shift = partially_processed_tasks.sort_values(
@@ -42,7 +44,7 @@ def schedule(tasks, employees, preferences):
         print(colored(f'{shift_index} - Shift End Time - {shift_end}', 'yellow'))
 
         # filter for games that can be processed in this shift_end
-        tasks_in_shift = sorted_tasks[sorted_tasks['earliest_processing_datetime'] < shift_end]
+        tasks_in_shift = sorted_tasks_by_priority[sorted_tasks_by_priority['earliest_processing_datetime'] < shift_end]
 
         # filter out games that have already been processed
         tasks_excl_fully_processed = tasks_in_shift[~tasks_in_shift.loc[:, 'task_id'].isin(processed_tasks['task_id'])]
@@ -50,7 +52,8 @@ def schedule(tasks, employees, preferences):
             ~tasks_excl_fully_processed.loc[:, 'task_id'].isin(partially_processed_tasks['task_id'])]
 
         # filter for employees working in this shift
-        employees_on_shift = sorted_employees[sorted_employees.loc[:, 'shift_end_datetime'] == shift_end]
+        employees_on_shift = sorted_collectors_by_shift[
+            sorted_collectors_by_shift.loc[:, 'shift_end_datetime'] == shift_end]
 
         print(colored(f'Number of partial tasks in this shift: {partials_for_todays_shift["task_id"].nunique()}',
                       'green'))

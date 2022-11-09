@@ -29,19 +29,19 @@ def main():
 
     # Transform
     formatted_priorities_df = transform(raw_priorities, format_priorities)
-    tasks_df = transform(raw_matches, format_matches_to_tasks)
+    formatted_tasks_df = transform(raw_matches, format_matches_to_tasks)
     formatted_competitions_df = transform(raw_competitions, format_competitions)
     formatted_schedule_df = transform(raw_schedule, format_schedule)
     formatted_preferences_df = transform(raw_preferences, format_preferences)
 
-    combined_match_info = combine_match_info(tasks_df, formatted_competitions_df, formatted_priorities_df)
+    # Join
+    combined_match_info = combine_match_info(formatted_tasks_df, formatted_competitions_df, formatted_priorities_df)
     complete_preferences = hydrate_preferences(formatted_preferences_df, formatted_competitions_df)
 
     # Run task
     schedule(combined_match_info, formatted_schedule_df, complete_preferences)
 
     # Load
-
 
     print(colored("Process complete!", 'green'))
 

@@ -49,6 +49,8 @@ Joiners are responsible for combining like-minded dataframes. For instance, a ma
 turn has a corresponding priority as noted in the tasks instructions. Preferences have been hydrated with additional
 information for competitions that don't have a preference squad. This is to aid in processing in the scheduler task.
 
+### Schedule
+
 ## Notes
 
 * The concept of an 'employee' is only with regards to a single shift. No employees span different shifts, which

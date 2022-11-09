@@ -9,6 +9,6 @@ def hydrate_preferences(preferences_df, competitions_df):
         'squad': 'not preferred'
     })
 
-    hydrated_preferences = pd.concat([preferences_df, uncommon_preferences_df])
+    hydrated_preferences_df = pd.concat([preferences_df, uncommon_preferences_df])
 
-    return hydrated_preferences
+    return hydrated_preferences_df
