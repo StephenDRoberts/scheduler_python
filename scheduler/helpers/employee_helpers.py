@@ -8,7 +8,7 @@ SECONDS_IN_HOURS = 60 * 60
 def earmark_collector(collector, current_schedule_df, task, preference_squad):
     # calculate employees rate of completion
     rate = 1.0 if collector['squad'] == preference_squad else (TASK_DURATION_HOURS / TASK_DURATION_HOURS_NON_PREFERENCE)
-    partial_record_for_task = current_schedule_df[current_schedule_df['match_id'] == task['match_id']]
+    partial_record_for_task = current_schedule_df[current_schedule_df['task_id'] == task['task_id']]
 
     if task['match_id'] == 13810:
         print("partial_record_for_task")
@@ -22,7 +22,6 @@ def earmark_collector(collector, current_schedule_df, task, preference_squad):
 
     # get collectors scheduled task (employee ids are unique to each shift)
     # TODO need to handle empty employee value rather than default to empty string
-
     collector_timetable = current_schedule_df[current_schedule_df['employee'] == collector['employee']]
 
     if task['match_id'] == 13810:
@@ -32,14 +31,18 @@ def earmark_collector(collector, current_schedule_df, task, preference_squad):
     # check earliest time task can be picked up
     time_task_is_ready_for_process = task['earliest_processing_datetime']
     shift_start = collector['shift_start_datetime']
-    earliest_processing_start_given_shift = max(time_task_is_ready_for_process, shift_start)
+
+    if partially_completed_hours == 0:
+        earliest_processing_start_given_shift_and_schedule = max(time_task_is_ready_for_process, shift_start)
+    else:
+        earliest_processing_start_given_shift_and_schedule = max(
+            time_task_is_ready_for_process, shift_start, partial_record_for_task['process_end'].iloc[0]
+        )
+
 
     # if collector_timetable is empty -> assign earliest time to task
     if collector_timetable.empty:
-        if partial_record_for_task.empty:
-            collector_start = earliest_processing_start_given_shift
-        else:
-            collector_start = max(earliest_processing_start_given_shift, partial_record_for_task['process_end'].iloc[0])
+        collector_start = earliest_processing_start_given_shift_and_schedule
     else:
         #   get scheduled task start and end times
         collectors_scheduled_task_start = min(collector_timetable['process_start'])
@@ -48,10 +51,10 @@ def earmark_collector(collector, current_schedule_df, task, preference_squad):
         # TODO dont think this works now
         # Need to allow for task end time in the collectors start time
         # can this task be completed before scheduled task collectors_scheduled_task_start
-        earliest_potential_end_time = earliest_processing_start_given_shift + timedelta(hours=hours_to_complete)
+        earliest_potential_end_time = earliest_processing_start_given_shift_and_schedule + timedelta(hours=hours_to_complete)
 
         if earliest_potential_end_time <= collectors_scheduled_task_start:
-            collector_start = earliest_processing_start_given_shift
+            collector_start = earliest_processing_start_given_shift_and_schedule
         else:
             collector_start = collectors_scheduled_task_end
 
@@ -64,7 +67,7 @@ def earmark_collector(collector, current_schedule_df, task, preference_squad):
 
     collector['collector_start'] = collector_start
     collector['collector_end'] = collector_end
-    collector['percentage_complete'] = percentage_of_task_complete
+    collector['percentage_complete'] = round(percentage_of_task_complete, 3)
 
     return collector
 
