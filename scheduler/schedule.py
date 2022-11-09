@@ -31,8 +31,10 @@ def schedule(tasks, employees, preferences):
     for shift_index, shift_end in enumerate(unique_shift_ends):
         partials_for_todays_shift = partially_processed_tasks
 
-        if shift_index in range(0, 10):
+
+        if shift_index in range(0, 20):
             print(colored(f'Shift End Time - {shift_end}', 'yellow'))
+
             # filter for games that can be processed in this shift_end
             tasks_in_shift = sorted_tasks[sorted_tasks['earliest_processing_datetime'] < shift_end]
 
@@ -42,18 +44,30 @@ def schedule(tasks, employees, preferences):
             # filter for employees working in this shift
             employees_on_shift = sorted_employees[sorted_employees.loc[:, 'shift_end_datetime'] == shift_end]
 
+            print(colored(f'Number of partials in this shift: {len(partials_for_todays_shift.index)}', 'green'))
+            print(colored(f'Number of new tasks in this shift: {len(tasks_excl_processed.index)}', 'green'))
+            print(colored(f'Employees on shift: {len(employees_on_shift.index)}', 'yellow'))
             # process partially processed matches as priority
             # once complete, place these games in processed_tasks and remove from partially_processed_tasks
-            for partial_task_index, partial_task in partials_for_todays_shift.iterrows():
+            # for partial_task_index, partial_task in enumerate(partials_for_todays_shift.iterrows()):
                 # print(colored(f'processing partials - Total: {len(partials_for_todays_shift.index)}', 'yellow'))
-                state_after_process = process_task(
-                    partial_task, partial_task_index, employees_on_shift, preferences, scheduled_tasks,
-                    processed_tasks, partially_processed_tasks
-                )
 
-                processed_tasks = state_after_process['processed_tasks']
-                partially_processed_tasks = state_after_process['partially_processed_tasks']
-                scheduled_tasks = state_after_process['scheduled_tasks']
+            for index in range(len(partials_for_todays_shift)):
+                partial_task = partials_for_todays_shift.iloc[index]
+
+                if index >= (len(employees_on_shift.index) * 2):
+                    print(f'This is partial record {index}. Max partials has been exceeded given capacity')
+                    continue
+
+                if not partials_for_todays_shift.empty:
+                    state_after_process = process_task(
+                        partial_task, index, employees_on_shift, preferences, scheduled_tasks,
+                        processed_tasks, partially_processed_tasks
+                    )
+
+                    processed_tasks = state_after_process['processed_tasks']
+                    partially_processed_tasks = state_after_process['partially_processed_tasks']
+                    scheduled_tasks = state_after_process['scheduled_tasks']
 
 
             # process tasks
@@ -80,8 +94,6 @@ def schedule(tasks, employees, preferences):
 def process_task(task, task_index, employees_on_shift, preferences, scheduled_tasks, processed_tasks,
                  partially_processed_tasks):
     # filter out any employees who can't pick up task in their shift
-
-
 
     competition = task['competition']
     preferred_squad = preferences[preferences['competition'] == competition]['squad'].iloc[0]

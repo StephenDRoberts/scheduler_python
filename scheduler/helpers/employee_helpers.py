@@ -10,10 +10,6 @@ def earmark_collector(collector, current_schedule_df, task, preference_squad):
     rate = 1.0 if collector['squad'] == preference_squad else (TASK_DURATION_HOURS / TASK_DURATION_HOURS_NON_PREFERENCE)
     partial_record_for_task = current_schedule_df[current_schedule_df['task_id'] == task['task_id']]
 
-    if task['match_id'] == 13810:
-        print("partial_record_for_task")
-        print(partial_record_for_task)
-
     partially_completed_hours = 0 if partial_record_for_task.empty else \
         timedelta.total_seconds(partial_record_for_task['process_end'].iloc[0] - partial_record_for_task['process_start'].iloc[0])/ SECONDS_IN_HOURS
 
@@ -23,10 +19,6 @@ def earmark_collector(collector, current_schedule_df, task, preference_squad):
     # get collectors scheduled task (employee ids are unique to each shift)
     # TODO need to handle empty employee value rather than default to empty string
     collector_timetable = current_schedule_df[current_schedule_df['employee'] == collector['employee']]
-
-    if task['match_id'] == 13810:
-        print("collector_timetable")
-        print(collector_timetable)
 
     # check earliest time task can be picked up
     time_task_is_ready_for_process = task['earliest_processing_datetime']
