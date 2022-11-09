@@ -4,14 +4,27 @@ TASK_DURATION_HOURS = 4
 TASK_DURATION_HOURS_NON_PREFERENCE = 5
 SECONDS_IN_HOURS = 60 * 60
 
-
-def earmark_collector(collector, current_schedule_df, task, preference_squad):
+# TODO HOW ARE WE HANDLING DUPLICATE RECORDS AND MAKING SURE WE PICK UP THE LAST ONE!!!
+#  NEED TO ALLOW FOR AMOUNT OF HOURS ALREADY COMPLETED!!!
+def earmark_collector(collector, current_schedule_df, task, preference_squad, shift_index):
     # calculate employees rate of completion
     rate = 1.0 if collector['squad'] == preference_squad else (TASK_DURATION_HOURS / TASK_DURATION_HOURS_NON_PREFERENCE)
-    partial_record_for_task = current_schedule_df[current_schedule_df['task_id'] == task['task_id']]
+    partial_records_for_task = current_schedule_df[current_schedule_df['task_id'] == task['task_id']]
 
-    partially_completed_hours = 0 if partial_record_for_task.empty else \
-        timedelta.total_seconds(partial_record_for_task['process_end'].iloc[0] - partial_record_for_task['process_start'].iloc[0])/ SECONDS_IN_HOURS
+    if shift_index == 10 and len(partial_records_for_task.index) > 1:
+        print(partial_records_for_task)
+        print(partial_records_for_task['process_end'].iloc[0] - partial_records_for_task['process_start'].iloc[0])
+        print(((partial_records_for_task['process_end'] - partial_records_for_task['process_start']) * partial_records_for_task['rate']).sum())
+
+    # if partial_records_for_task.empty:
+    #     partially_completed_hours = 0
+    # else:
+    #     hours_completed_with_rate
+    #     partially_completed_hours = 0
+    partially_completed_hours = 0 if partial_records_for_task.empty else \
+        timedelta.total_seconds(
+            ((partial_records_for_task['process_end'] - partial_records_for_task['process_start']) * partial_records_for_task['rate']).sum()
+        )/ SECONDS_IN_HOURS
 
     hours_to_complete = (TASK_DURATION_HOURS - partially_completed_hours) / rate
 
@@ -28,7 +41,7 @@ def earmark_collector(collector, current_schedule_df, task, preference_squad):
         earliest_processing_start_given_shift_and_schedule = max(time_task_is_ready_for_process, shift_start)
     else:
         earliest_processing_start_given_shift_and_schedule = max(
-            time_task_is_ready_for_process, shift_start, partial_record_for_task['process_end'].iloc[0]
+            time_task_is_ready_for_process, shift_start, partial_records_for_task['process_end'].max()
         )
 
 
@@ -43,7 +56,8 @@ def earmark_collector(collector, current_schedule_df, task, preference_squad):
         # TODO dont think this works now
         # Need to allow for task end time in the collectors start time
         # can this task be completed before scheduled task collectors_scheduled_task_start
-        earliest_potential_end_time = earliest_processing_start_given_shift_and_schedule + timedelta(hours=hours_to_complete)
+        earliest_potential_end_time = \
+            earliest_processing_start_given_shift_and_schedule + timedelta(hours=hours_to_complete)
 
         if earliest_potential_end_time <= collectors_scheduled_task_start:
             collector_start = earliest_processing_start_given_shift_and_schedule
@@ -53,12 +67,14 @@ def earmark_collector(collector, current_schedule_df, task, preference_squad):
     full_completion_time = collector_start + timedelta(hours=hours_to_complete)
     shift_end = collector['shift_end_datetime']
     collector_end = min(shift_end, full_completion_time)
+
     # calculate percentage of task complete
     task_duration = timedelta.total_seconds(collector_end - collector_start) / SECONDS_IN_HOURS
     percentage_of_task_complete = task_duration / hours_to_complete if task_duration != 0.0 else 0.0
 
     collector['collector_start'] = collector_start
     collector['collector_end'] = collector_end
+    collector['rate'] = rate
     collector['percentage_complete'] = round(percentage_of_task_complete, 3)
 
     return collector
