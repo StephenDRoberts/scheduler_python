@@ -15,6 +15,7 @@ from scheduler.schedule import schedule
 
 
 def main():
+    # Extract
     #  TODO defensive coding when file corrupt
     try:
         raw_priorities = parse('./resources/priorities.csv')
@@ -26,6 +27,7 @@ def main():
         print(f"File not found: {file_not_found}")
         sys.exit(1)
 
+    # Transform
     formatted_priorities_df = transform(raw_priorities, format_priorities)
     tasks_df = transform(raw_matches, format_matches_to_tasks)
     formatted_competitions_df = transform(raw_competitions, format_competitions)
@@ -35,7 +37,11 @@ def main():
     combined_match_info = combine_match_info(tasks_df, formatted_competitions_df, formatted_priorities_df)
     complete_preferences = hydrate_preferences(formatted_preferences_df, formatted_competitions_df)
 
+    # Run task
     schedule(combined_match_info, formatted_schedule_df, complete_preferences)
+
+    # Load
+
 
     print(colored("Process complete!", 'green'))
 

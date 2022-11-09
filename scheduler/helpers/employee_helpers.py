@@ -1,14 +1,11 @@
 from datetime import timedelta
 
-TASK_DURATION_HOURS = 4
-TASK_DURATION_HOURS_NON_PREFERENCE = 5
-SECONDS_IN_HOURS = 60 * 60
+from constants.constants import MIN_TASK_DURATION_HOURS, SECONDS_IN_HOURS, NON_PREFERENCE_TIME_ADJUSTMENT_HOURS
 
-# TODO HOW ARE WE HANDLING DUPLICATE RECORDS AND MAKING SURE WE PICK UP THE LAST ONE!!!
-#  NEED TO ALLOW FOR AMOUNT OF HOURS ALREADY COMPLETED!!!
+
 def earmark_collector(collector, current_schedule_df, task, preference_squad, shift_index):
     # calculate employees rate of completion
-    rate = 1.0 if collector['squad'] == preference_squad else (TASK_DURATION_HOURS / TASK_DURATION_HOURS_NON_PREFERENCE)
+    rate = 1.0 if collector['squad'] == preference_squad else (MIN_TASK_DURATION_HOURS / (MIN_TASK_DURATION_HOURS + NON_PREFERENCE_TIME_ADJUSTMENT_HOURS))
     partial_records_for_task = current_schedule_df[current_schedule_df['task_id'] == task['task_id']]
 
     if shift_index == 10 and len(partial_records_for_task.index) > 1:
@@ -16,17 +13,12 @@ def earmark_collector(collector, current_schedule_df, task, preference_squad, sh
         print(partial_records_for_task['process_end'].iloc[0] - partial_records_for_task['process_start'].iloc[0])
         print(((partial_records_for_task['process_end'] - partial_records_for_task['process_start']) * partial_records_for_task['rate']).sum())
 
-    # if partial_records_for_task.empty:
-    #     partially_completed_hours = 0
-    # else:
-    #     hours_completed_with_rate
-    #     partially_completed_hours = 0
     partially_completed_hours = 0 if partial_records_for_task.empty else \
         timedelta.total_seconds(
             ((partial_records_for_task['process_end'] - partial_records_for_task['process_start']) * partial_records_for_task['rate']).sum()
         )/ SECONDS_IN_HOURS
 
-    hours_to_complete = (TASK_DURATION_HOURS - partially_completed_hours) / rate
+    hours_to_complete = (MIN_TASK_DURATION_HOURS - partially_completed_hours) / rate
 
 
     # get collectors scheduled task (employee ids are unique to each shift)
@@ -53,8 +45,6 @@ def earmark_collector(collector, current_schedule_df, task, preference_squad, sh
         collectors_scheduled_task_start = min(collector_timetable['process_start'])
         collectors_scheduled_task_end = max(collector_timetable['process_end'])
 
-        # TODO dont think this works now
-        # Need to allow for task end time in the collectors start time
         # can this task be completed before scheduled task collectors_scheduled_task_start
         earliest_potential_end_time = \
             earliest_processing_start_given_shift_and_schedule + timedelta(hours=hours_to_complete)
@@ -78,78 +68,3 @@ def earmark_collector(collector, current_schedule_df, task, preference_squad, sh
     collector['percentage_complete'] = round(percentage_of_task_complete, 3)
 
     return collector
-
-
-def is_available_for_task(employee, timetable_df, task, preference_squad):
-    employee_timetable = timetable_df[timetable_df['employee'] == employee['employee']]
-    competition = task['competition']
-    rate_of_completion = 1.0 if competition == preference_squad else \
-        (TASK_DURATION_HOURS / TASK_DURATION_HOURS_NON_PREFERENCE)
-
-    if has_empty_shift(employee_timetable):
-        return True
-
-    elif has_time_before_end_of_shift(employee, employee_timetable):
-        # the employee can fit in all or partial amount before the end of their shift
-        return True
-    elif has_time_before_scheduled_task(employee, employee_timetable, task, rate_of_completion):
-        # the employee has time earlier in their shift to complete a full review of a team
-        return True
-    else:
-        return False
-
-
-def calculate_pickup_and_completion_time(employee, timetable_df, task, rate):
-    employee_timetable = timetable_df[timetable_df['employee'] == employee['employee']]
-
-    if has_empty_shift(employee_timetable):
-        start = max(task['earliest_processing_datetime'], employee['shift_start_datetime'])
-        end = start + timedelta(hours=(TASK_DURATION_HOURS / rate))
-        return {
-            'start': start,
-            'end': end
-        }
-
-    if has_time_before_end_of_shift(employee, employee_timetable, task):
-        employee_shift_end = employee['shift_end_datetime']
-        latest_scheduled_task_end = employee_timetable['employee_process_end'].max()
-
-        start = max([employee_shift_end], latest_scheduled_task_end)
-        end = employee_shift_end
-        return {
-            'start': start,
-            'end': end
-        }
-
-    if has_time_before_scheduled_task(employee, employee_timetable, task):
-        start = employee['shift_start_datetime']
-        end = start + timedelta(hours=TASK_DURATION_HOURS)
-
-        return {
-            'start': start,
-            'end': end
-        }
-    return None
-
-
-def has_empty_shift(employee_shift_timetable):
-    return employee_shift_timetable.empty
-
-
-def has_time_before_end_of_shift(employee, employee_shift_timetable):
-    employee_shift_end = employee['shift_end_datetime']
-    scheduled_task_end_series = employee_shift_timetable['employee_process_end']
-    return (scheduled_task_end_series.max() < employee_shift_end)
-
-
-def has_time_before_scheduled_task(employee, employee_shift_timetable, task, rate):
-    employee_shift_start = employee['shift_start_datetime']
-    earliest_processing_time = task['earliest_processing_datetime']
-    scheduled_tasks = employee_shift_timetable['process_start']
-
-    return (scheduled_tasks.min() >= (employee_shift_start + timedelta(
-        hours=(TASK_DURATION_HOURS / rate)))) and (earliest_processing_time <= employee_shift_start)
-
-
-def filter_for_employee_timetable_in_shift(employee, employee_shift_timetable):
-    return employee_shift_timetable[employee_shift_timetable['employee'] == employee['employee']]

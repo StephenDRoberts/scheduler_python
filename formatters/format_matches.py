@@ -1,7 +1,7 @@
 import pandas as pd
 from datetime import timedelta
 
-AVERAGE_GAME_TIME_IN_MINUTES = 110
+from constants.constants import AVERAGE_GAME_TIME_IN_MINUTES
 
 match_columns = {
     'ID': 'match_id',
