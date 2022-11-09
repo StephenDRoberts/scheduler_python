@@ -1,7 +1,6 @@
 import pandas as pd
 from datetime import timedelta
 
-
 AVERAGE_GAME_TIME_IN_MINUTES = 110
 
 match_columns = {
@@ -23,7 +22,9 @@ def format_matches_to_tasks(df):
     earliest_processing_datetime = kick_off_datetime + timedelta(minutes=AVERAGE_GAME_TIME_IN_MINUTES)
     df['earliest_processing_datetime'] = earliest_processing_datetime
 
-    tasks_df = pd.DataFrame(columns=df.columns.tolist() + ['team'])
+    tasks_df = df.copy(deep=False)
+    tasks_df.astype(df.dtypes.to_dict())
+    tasks_df = tasks_df.iloc[0:0]
 
     for index, row in df.iterrows():
         for i in range(2):
