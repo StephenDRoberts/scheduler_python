@@ -1,0 +1,2 @@
+match_id,team,kick_off_datetime,earliest_processing_datetime,competition,country,priority_class,priority_hours,processing_deadline,employee,process_start,process_end,percentage_complete
+46330,team-HOME,2019-04-01 00:30:00,2019-04-01 02:20:00,MLS,USA,1,12,2019-04-01 12:30:00,employee-E-2019-04-01-Morning-1,2019-04-01 10:00:00,2019-04-01 15:00:00,1.0

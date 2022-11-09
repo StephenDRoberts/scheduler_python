@@ -30,7 +30,7 @@ def format_schedule(df):
         for staff_number in range(row['quantity']):
             # TODO - is this new object creation needed? feels like it's slowing the process down
             data = pd.DataFrame([row])
-            data['employee'] = f'employee-{row["squad"]}-{row["date"]}-{staff_number + 1}'
+            data['employee'] = f'employee-{row["squad"]}-{row["date"]}-{row["shift"]}-{staff_number + 1}'
 
             staff_schedule_df = pd.concat([staff_schedule_df, data], ignore_index=True)
 
