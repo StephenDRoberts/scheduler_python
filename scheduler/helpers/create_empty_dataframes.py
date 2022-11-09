@@ -1,4 +1,4 @@
-def create_empty_df_from_template(df, new_series_dict):
+def create_empty_df_from_template(df, new_series_dict = {}):
     new_df = df.copy(deep=False)
     new_df.astype(df.dtypes.to_dict())
 
