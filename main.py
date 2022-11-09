@@ -1,5 +1,7 @@
 import sys
 
+from termcolor import colored
+
 from formatters.format_competitions import format_competitions
 from formatters.format_matches import format_matches_to_tasks
 from formatters.format_preferences import format_preferences
@@ -33,8 +35,9 @@ def main():
     combined_match_info = combine_match_info(tasks_df, formatted_competitions_df, formatted_priorities_df)
     complete_preferences = hydrate_preferences(formatted_preferences_df, formatted_competitions_df)
 
-
     schedule(combined_match_info, formatted_schedule_df, complete_preferences)
+
+    print(colored("Process complete!", 'green'))
 
 
 if __name__ == '__main__':

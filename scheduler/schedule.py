@@ -1,10 +1,10 @@
-from datetime import timedelta
+from datetime import datetime
 
 import pandas as pd
 from termcolor import colored
-from pathlib import Path
 
 from scheduler.helpers.employee_helpers import earmark_collector
+from writer.write import write_to_csv
 
 SECONDS_IN_HOURS = 60 * 60
 MIN_TASK_DURATION = 4
@@ -23,6 +23,8 @@ def schedule(tasks, employees, preferences):
 
     partially_processed_tasks = sorted_tasks.copy(deep=False)
     partially_processed_tasks.astype(sorted_tasks.dtypes.to_dict())
+    partially_processed_tasks['percentage_complete'] = 0.
+    partially_processed_tasks['process_end'] = datetime.now()
     partially_processed_tasks = partially_processed_tasks.iloc[0:0]
 
     scheduled_tasks = sorted_tasks.copy(deep=False)
@@ -31,35 +33,50 @@ def schedule(tasks, employees, preferences):
     scheduled_tasks['employee'] = ''
 
     for shift_index, shift_end in enumerate(unique_shift_ends):
-        partials_for_todays_shift = partially_processed_tasks
+        partials_for_todays_shift = partially_processed_tasks.sort_values(
+            by=['percentage_complete', 'process_end'],
+            ascending=[False, False]
+        )
+        print(shift_index)
+        # TODO capacity based on finished and partial dfs
+        # if shift_index in range(0, 27):
+
+        print(colored(f'Shift End Time - {shift_end}', 'yellow'))
+
+        # filter for games that can be processed in this shift_end
+        tasks_in_shift = sorted_tasks[sorted_tasks['earliest_processing_datetime'] < shift_end]
+
+        # filter out games that have already been processed
+        tasks_excl_fully_processed = tasks_in_shift[~tasks_in_shift.loc[:, 'task_id'].isin(processed_tasks['task_id'])]
+        tasks_excl_partially_processed = tasks_excl_fully_processed[~tasks_excl_fully_processed.loc[:, 'task_id'].isin(partially_processed_tasks['task_id'])]
 
 
+        # filter for employees working in this shift
+        employees_on_shift = sorted_employees[sorted_employees.loc[:, 'shift_end_datetime'] == shift_end]
 
-        if shift_index in range(0, 4):
-            print(colored(f"Shift End Time - {shift_end}"), "orange")
-            # filter for games that can be processed in this shift_end
-            tasks_in_shift = sorted_tasks[sorted_tasks['earliest_processing_datetime'] < shift_end]
+        print(colored(f'Number of partial tasks in this shift: {partials_for_todays_shift["task_id"].nunique()}', 'green'))
+        print(colored(f'Number of new tasks in this shift: {tasks_excl_partially_processed["task_id"].nunique()}', 'green'))
+        print(colored(f'Employees on shift: {len(employees_on_shift.index)}', 'yellow'))
+        # process partially processed matches as priority
+        # once complete, place these games in processed_tasks and remove from partially_processed_tasks
+        # for partial_task_index, partial_task in enumerate(partials_for_todays_shift.iterrows()):
+            # print(colored(f'processing partials - Total: {len(partials_for_todays_shift.index)}', 'yellow'))
 
-            # filter out games that have already been processed
-            tasks_excl_processed = tasks_in_shift[~tasks_in_shift.loc[:, 'match_id'].isin(processed_tasks['match_id'])]
+        for index in range(len(partials_for_todays_shift)):
+            partial_task = partials_for_todays_shift.iloc[index]
 
-            # print("Tasks whose process can be started:")
-            # print(tasks_excl_processed)
+            # TODO need to make this a universal capacity check
+            if index >= (len(employees_on_shift.index) * 2):
+                # print(f'This is partial record {index}. Max partials has been exceeded given capacity')
+                continue
 
-            # filter for employees working in this shift
-            employees_on_shift = sorted_employees[sorted_employees.loc[:, 'shift_end_datetime'] == shift_end]
+            # if shift_index == 9 or shift_index == 10:
+            #     print(colored(partials_for_todays_shift, 'yellow'))
+            if not partials_for_todays_shift.empty:
 
-            # print("****COLLECTORS****")
-            # print(employees_on_shift)
-
-            # TODO process partially processed matches as priority
-            # process partially processed matches as priority
-            # once complete, place these games in processed_tasks and remove from partially_processed_tasks
-            for partial_task_index, partial_task in partials_for_todays_shift.iterrows():
-                print(colored(f'processing partials - Total: {len(partials_for_todays_shift.index)}', 'yellow'))
                 state_after_process = process_task(
-                    partial_task, partial_task_index, employees_on_shift, preferences, scheduled_tasks,
-                    processed_tasks, partially_processed_tasks
+                    partial_task, index, employees_on_shift, preferences, scheduled_tasks,
+                    processed_tasks, partially_processed_tasks, shift_index
                 )
 
                 processed_tasks = state_after_process['processed_tasks']
@@ -67,65 +84,52 @@ def schedule(tasks, employees, preferences):
                 scheduled_tasks = state_after_process['scheduled_tasks']
 
 
+        # process tasks
+        for task_index, task in tasks_excl_partially_processed.iterrows():
 
-            # process tasks
-            for task_index, task in tasks_excl_processed.iterrows():
-                print(colored(f'processing mains - Total: {len(tasks_excl_processed.index)}', 'green'))
-                # if task_index == 2:
-                state_after_process = process_task(
-                    task, task_index, employees_on_shift, preferences, scheduled_tasks,
-                    processed_tasks, partially_processed_tasks
-                )
+            state_after_process = process_task(
+                task, task_index, employees_on_shift, preferences, scheduled_tasks,
+                processed_tasks, partially_processed_tasks, shift_index
+            )
 
-                processed_tasks = state_after_process['processed_tasks']
-                partially_processed_tasks = state_after_process['partially_processed_tasks']
-                scheduled_tasks = state_after_process['scheduled_tasks']
+            processed_tasks = state_after_process['processed_tasks']
+            partially_processed_tasks = state_after_process['partially_processed_tasks']
+            scheduled_tasks = state_after_process['scheduled_tasks']
 
-
-    processed_output_filepath = Path('./output/processed.csv')
-    processed_output_filepath.parent.mkdir(parents=True, exist_ok=True)
-    processed_tasks.to_csv(processed_output_filepath, index=False)
-
-    partially_processed_output_filepath = Path('./output/partial.csv')
-    partially_processed_output_filepath.parent.mkdir(parents=True, exist_ok=True)
-    partially_processed_tasks.to_csv(partially_processed_output_filepath, index=False)
-
-    overdue_output_filepath = Path('./output/overdue.csv')
-    overdue_output_filepath.parent.mkdir(parents=True, exist_ok=True)
+    # convert overdue tasks to overdue games
     overdue_tasks = processed_tasks[(processed_tasks['process_end'] > processed_tasks['processing_deadline'])]
-    overdue_tasks.to_csv(overdue_output_filepath, index=False)
 
-
-    # print("COMPLETE")
-    # print(colored(processed_tasks, 'green'))
-    # print("PARTIAL")
-    # print(colored(partially_processed_tasks, 'yellow'))
-    # print("OVERDUE")
-    # overdue = processed_tasks[(processed_tasks['process_end'] > processed_tasks['processing_deadline'])]
-    # print(colored(overdue, 'red'))
+    # convert processed tasks to processed games?
+    write_to_csv(processed_tasks, 'processed')
+    write_to_csv(partially_processed_tasks, 'partial')
+    write_to_csv(overdue_tasks, 'overdue')
 
 
 def process_task(task, task_index, employees_on_shift, preferences, scheduled_tasks, processed_tasks,
-                 partially_processed_tasks):
+                 partially_processed_tasks, shift_index):
     # filter out any employees who can't pick up task in their shift
-
-
 
     competition = task['competition']
     preferred_squad = preferences[preferences['competition'] == competition]['squad'].iloc[0]
 
+    # if shift_index ==16:
+    #     print(colored(task, 'green'))
+
     collectors = employees_on_shift.apply(earmark_collector, axis=1, args=(
-        scheduled_tasks, task, preferred_squad
+        scheduled_tasks, task, preferred_squad, shift_index
     ))
 
     # if no one can pick up, move to the next shift
     if (collectors.empty or collectors['percentage_complete'] == 0).all():
-        # print('no collectors can pick up task, moving to next shift')
+        # if shift_index == 16:
+        #     print('no collectors can pick up task, moving to next shift')
+        #     print(collectors)
         partial_task = pd.DataFrame([task])
-        partial_task['employee'] = ''
-        partial_task['process_start'] = ''
-        partial_task['process_end'] = ''
-        partial_task['percentage_complete'] = 0.0
+        # partial_task['employee'] = ''
+        # partial_task['process_start'] = ''
+        # partial_task['process_end'] = ''
+        # partial_task['rate'] = 1
+        # partial_task['percentage_complete'] = 0.0
         partially_processed_tasks = pd.concat([partially_processed_tasks, partial_task])
         return {
             'processed_tasks': processed_tasks,
@@ -133,38 +137,51 @@ def process_task(task, task_index, employees_on_shift, preferences, scheduled_ta
             'scheduled_tasks': scheduled_tasks
         }
     else:
-
         # otherwise, sort collectors by who can complete the complete the most, then by earliest
         sorted_collectors = collectors.sort_values(
             ['percentage_complete', 'collector_end'], ascending=[False, True]
         )
+        # if task['task_id'] == "10415-AWAY":
+        #     print(colored(collectors, 'red'))
+        #     print(task_index)
 
         assigned_collector = sorted_collectors.iloc[0]
-
+        # print('The chosen one:')
+        # print(assigned_collector)
         # add task information to scheduled tasks
         new_scheduled_task = pd.DataFrame([task])
         new_scheduled_task['employee'] = assigned_collector['employee']
         new_scheduled_task['process_start'] = assigned_collector['collector_start']
         new_scheduled_task['process_end'] = assigned_collector['collector_end']
+        new_scheduled_task['rate'] = assigned_collector['rate']
         new_scheduled_task['percentage_complete'] = assigned_collector['percentage_complete']
 
         scheduled_tasks = pd.concat([scheduled_tasks, new_scheduled_task])
 
         # if complete -> add to processed_tasks
         if assigned_collector['percentage_complete'] == 1:
+            # print('completing')
             processed_tasks = pd.concat([processed_tasks, new_scheduled_task])
-            partially_processed_tasks = partially_processed_tasks.drop(
-                partially_processed_tasks[partially_processed_tasks['match_id'] == task['match_id']].index
-            )
+
+            partially_processed_tasks = partially_processed_tasks[~partially_processed_tasks.loc[:,'task_id'].isin(processed_tasks['task_id'])]
+
+            # partially_processed_tasks = partially_processed_tasks.drop(
+            #     partially_processed_tasks[partially_processed_tasks['task_id'] == task['task_id']].index
+            # )
 
         else:
             # else add to partially processed_tasks
             # print(colored('Adding to partially complete', 'yellow'))
             # print(colored(new_scheduled_task, 'yellow'))
+            # partially_processed_tasks = partially_processed_tasks.drop(
+            #     partially_processed_tasks[partially_processed_tasks['task_id'] == task['task_id']].index
+            # )
+
+
             partially_processed_tasks = pd.concat([partially_processed_tasks, new_scheduled_task])
             # this is added to processed so we'll have 2 entries for any partially processed records.
             # we'll need to allow for multiple records in the reporting
-            #  TODO make sure duplicate match_ids is handled in the reporting
+            #  TODO make sure duplicate task_ids is handled in the reporting
             processed_tasks = pd.concat([processed_tasks, new_scheduled_task])
 
         return {
