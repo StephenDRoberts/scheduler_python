@@ -1,7 +1,6 @@
 from datetime import datetime
 
 import pandas as pd
-from termcolor import colored
 
 from scheduler.helpers.create_empty_dataframes import create_empty_df_from_template
 
@@ -19,6 +18,7 @@ def test_should_return_empty_df_with_original_column_types():
     assert list(result.columns) == list(original_df.columns)
     assert result.empty
 
+
 def test_should_return_empty_df_with_new_column_types():
     original_df = pd.DataFrame({
         'name': ['steve'],
@@ -33,7 +33,6 @@ def test_should_return_empty_df_with_new_column_types():
     new_series = pd.Series({'on': bool})
     expected_dtypes = pd.concat([original_df.dtypes, new_series])
     expected_columns = ['name', 'id', 'date', 'on']
-
 
     result = create_empty_df_from_template(original_df, new_series_dict)
 

@@ -32,7 +32,7 @@ def format_matches_to_tasks(df):
             data = pd.DataFrame([row])
             data['team'] = f'team-{team_association}'
             data['task_id'] = f'{row["match_id"]}-{team_association}'
-
+            data['percentage_complete'] = 0
             tasks_df = pd.concat([tasks_df, data], ignore_index=True)
 
     return tasks_df

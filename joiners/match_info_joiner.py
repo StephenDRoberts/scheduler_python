@@ -3,7 +3,7 @@ import pandas as pd
 
 def combine_match_info(matches_df, competitions_df, priorities_df):
     matches_with_competitions_df = pd.merge(
-        matches_df[['task_id', 'match_id', 'team', 'kick_off_datetime', 'earliest_processing_datetime', 'competition']],
+        matches_df[['task_id', 'match_id', 'team', 'kick_off_datetime', 'earliest_processing_datetime', 'competition', 'percentage_complete']],
         competitions_df[['country', 'priority_class', 'competition']],
         on='competition'
     )
