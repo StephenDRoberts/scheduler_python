@@ -3,10 +3,8 @@ from datetime import datetime
 import pandas as pd
 from termcolor import colored
 
-from constants.constants import MIN_TASK_DURATION_HOURS, NON_PREFERENCE_TIME_ADJUSTMENT_HOURS
 from scheduler.helpers.create_empty_dataframes import create_empty_df_from_template
-from scheduler.helpers.employee_helpers import earmark_employee
-from writer.write import write_to_csv
+from scheduler.helpers.employee_helpers import task_planner
 
 
 def schedule(tasks, collectors, preferences):
@@ -28,90 +26,89 @@ def schedule(tasks, collectors, preferences):
     )
     scheduled_tasks = create_empty_df_from_template(
         sorted_tasks_by_priority, {
-            'employee': ''
+            'employee': '',
+            'process_end': datetime.now()
         })
 
     for shift_index, shift_end in enumerate(unique_shift_ends):
-        if shift_index in range(0, 6):
-            print(colored(f'{shift_index} - Shift End Time - {shift_end}', 'yellow'))
+        # if shift_index in range(0, 6):
+        print(colored(f'{shift_index} - Shift End Time - {shift_end}', 'yellow'))
 
-            partials_for_todays_shift = partially_processed_tasks.sort_values(
-                by=['processing_deadline', 'percentage_complete'],
-                ascending=[True, False]
+        partials_for_todays_shift = partially_processed_tasks.sort_values(
+            by=['processing_deadline', 'percentage_complete'],
+            ascending=[True, False]
+        )
+
+        # filter for games that can be processed in this shift_end
+        tasks_in_shift = sorted_tasks_by_priority[
+            sorted_tasks_by_priority['earliest_processing_datetime'] < shift_end
+            ]
+
+        # filter out games that have already been processed
+        tasks_excl_fully_processed = tasks_in_shift[
+            ~tasks_in_shift.loc[:, 'task_id'].isin(processed_tasks['task_id'])]
+        tasks_excl_partially_processed = tasks_excl_fully_processed[
+            ~tasks_excl_fully_processed.loc[:, 'task_id'].isin(partially_processed_tasks['task_id'])]
+
+        # filter for employees working in this shift
+        employees_on_shift = sorted_collectors_by_shift[
+            sorted_collectors_by_shift.loc[:, 'shift_end_datetime'] == shift_end]
+
+        print(colored(f'Number of partial tasks in this shift: {partials_for_todays_shift["task_id"].nunique()}',
+                      'green'))
+        print(colored(f'Number of new tasks in this shift: {tasks_excl_partially_processed["task_id"].nunique()}',
+                      'green'))
+        print(colored(f'Employees on shift: {len(employees_on_shift.index)}', 'yellow'))
+
+        # process partially processed matches as priority
+        # once complete, place these games in processed_tasks and remove from partially_processed_tasks
+        for index in range(len(partials_for_todays_shift)):
+            partial_task = partials_for_todays_shift.iloc[index]
+
+            # TODO need to make this a universal capacity check
+            if index >= (len(employees_on_shift.index) * 3):
+                continue
+
+            state_after_process = process_task(
+                partial_task, employees_on_shift, preferences, scheduled_tasks,
+                processed_tasks, partially_processed_tasks
             )
 
-            # filter for games that can be processed in this shift_end
-            tasks_in_shift = sorted_tasks_by_priority[
-                sorted_tasks_by_priority['earliest_processing_datetime'] < shift_end
-                ]
+            processed_tasks = state_after_process['processed_tasks']
+            partially_processed_tasks = state_after_process['partially_processed_tasks']
+            scheduled_tasks = state_after_process['scheduled_tasks']
 
-            # filter out games that have already been processed
-            tasks_excl_fully_processed = tasks_in_shift[
-                ~tasks_in_shift.loc[:, 'task_id'].isin(processed_tasks['task_id'])]
-            tasks_excl_partially_processed = tasks_excl_fully_processed[
-                ~tasks_excl_fully_processed.loc[:, 'task_id'].isin(partially_processed_tasks['task_id'])]
+        # process new tasks
+        for task_index, task in tasks_excl_partially_processed.iterrows():
+            state_after_process = process_task(
+                task, employees_on_shift, preferences, scheduled_tasks,
+                processed_tasks, partially_processed_tasks
+            )
 
-            # filter for employees working in this shift
-            employees_on_shift = sorted_collectors_by_shift[
-                sorted_collectors_by_shift.loc[:, 'shift_end_datetime'] == shift_end]
-
-            print(colored(f'Number of partial tasks in this shift: {partials_for_todays_shift["task_id"].nunique()}',
-                          'green'))
-            print(colored(f'Number of new tasks in this shift: {tasks_excl_partially_processed["task_id"].nunique()}',
-                          'green'))
-            print(colored(f'Employees on shift: {len(employees_on_shift.index)}', 'yellow'))
-
-            # process partially processed matches as priority
-            # once complete, place these games in processed_tasks and remove from partially_processed_tasks
-
-            for index in range(len(partials_for_todays_shift)):
-                partial_task = partials_for_todays_shift.iloc[index]
-
-                # TODO need to make this a universal capacity check
-                if index >= (len(employees_on_shift.index) * 3):
-                    continue
-
-                state_after_process = process_task(
-                    partial_task, employees_on_shift, preferences, scheduled_tasks,
-                    processed_tasks, partially_processed_tasks, shift_index
-                )
-
-                processed_tasks = state_after_process['processed_tasks']
-                partially_processed_tasks = state_after_process['partially_processed_tasks']
-                scheduled_tasks = state_after_process['scheduled_tasks']
-
-            # process tasks
-            for task_index, task in tasks_excl_partially_processed.iterrows():
-                state_after_process = process_task(
-                    task, employees_on_shift, preferences, scheduled_tasks,
-                    processed_tasks, partially_processed_tasks, shift_index
-                )
-
-                processed_tasks = state_after_process['processed_tasks']
-                partially_processed_tasks = state_after_process['partially_processed_tasks']
-                scheduled_tasks = state_after_process['scheduled_tasks']
+            processed_tasks = state_after_process['processed_tasks']
+            partially_processed_tasks = state_after_process['partially_processed_tasks']
+            scheduled_tasks = state_after_process['scheduled_tasks']
 
     # convert overdue tasks to overdue games
     overdue_tasks = processed_tasks[(processed_tasks['process_end'] > processed_tasks['processing_deadline'])]
 
-    # convert processed tasks to processed games?
-    write_to_csv(processed_tasks, 'processed')
-    write_to_csv(partially_processed_tasks, 'partial')
-    write_to_csv(overdue_tasks, 'overdue')
+    return {
+        'processed_tasks': processed_tasks,
+        'partially_processed_tasks': partially_processed_tasks,
+        'overdue_tasks': overdue_tasks
+    }
 
 
 def process_task(task, employees_on_shift, preferences, scheduled_tasks,
-                 processed_tasks, partially_processed_tasks, shift_index):
-
+                 processed_tasks, partially_processed_tasks):
     competition = task['competition']
     preferred_squad = preferences[preferences['competition'] == competition]['squad'].iloc[0]
 
-    collectors = employees_on_shift.apply(earmark_employee, axis=1, args=(
-        scheduled_tasks, task, preferred_squad, shift_index
-    ))
+    collectors = employees_on_shift.apply(task_planner, axis=1, args=(scheduled_tasks, task, preferred_squad))
 
     # if no one can pick up, move to the next shift
-    if (collectors['percentage_complete'] == task['percentage_complete']).all():
+    if (collectors['percentage_complete'] == 0).all():
+        print('all collectors percentage match current - cannot progress')
         partial_task = pd.DataFrame([task])
 
         partially_processed_tasks = pd.concat([partially_processed_tasks, partial_task])
@@ -155,10 +152,3 @@ def process_task(task, employees_on_shift, preferences, scheduled_tasks,
             'partially_processed_tasks': partially_processed_tasks,
             'scheduled_tasks': scheduled_tasks
         }
-
-
-def calculate_percentage_of_task_complete(time_complete, preference_employee):
-    if preference_employee:
-        return time_complete / MIN_TASK_DURATION_HOURS
-    else:
-        return time_complete / (MIN_TASK_DURATION_HOURS + NON_PREFERENCE_TIME_ADJUSTMENT_HOURS)

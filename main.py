@@ -12,6 +12,7 @@ from joiners.preferences_joiner import hydrate_preferences
 from parser.parse_csv import parse
 from joiners.match_info_joiner import combine_match_info
 from scheduler.schedule import schedule
+from writer.write import write_to_csv
 
 
 def main():
@@ -39,9 +40,10 @@ def main():
     complete_preferences = hydrate_preferences(formatted_preferences_df, formatted_competitions_df)
 
     # Run task
-    schedule(combined_match_info, formatted_schedule_df, complete_preferences)
+    tasks_data = schedule(combined_match_info, formatted_schedule_df, complete_preferences)
 
     # Load
+    write_to_csv(tasks_data)
 
     print(colored("Process complete!", 'green'))
 
