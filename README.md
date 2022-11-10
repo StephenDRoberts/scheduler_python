@@ -38,7 +38,7 @@ a [pandas](https://pandas.pydata.org/) dataframe.
 
 Each filetype has its own formatter. Their job is to clean and format the data in a way that makes the processes later
 on easier.
-For instance, in [format_schedule](formatters/format_schedule.py), additional information is for shift start/end times.
+For instance, in [format_schedule](src/formatters/format_schedule.py), additional information is for shift start/end times.
 The schedule is extended to create employee (collectors) IDs for each employee working on a shift. Similarly, matches
 have been extended to tasks where each task represents analysing on a specific team in a match.
 The formatters are also responsible for relabeling columns in their respective dataframes.
@@ -58,7 +58,7 @@ information for competitions that don't have a preference squad. This is to aid 
 
 #### Thoughts on code/best practices
 
-* In [format_matches_to_tasks](formatters/format_matches.py) I would have liked to have checked/applied language
+* In [format_matches_to_tasks](src/formatters/format_matches.py) I would have liked to have checked/applied language
   decoding
   programatically across any series that needed it. However, in the interest of time applying to the `competition`
   seemed sensible given this dataset.

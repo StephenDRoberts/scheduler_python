@@ -1,6 +1,6 @@
 import pandas as pd
 
-from formatters.format_priorities import format_priorities
+from src.formatters import format_priorities
 
 priorities = pd.DataFrame({
     'Priority Class': [1, 2, 3],

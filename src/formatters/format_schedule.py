@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from datetime import timedelta
 
-from constants.constants import MORNING_SHIFT_START_TIME, NIGHT_SHIFT_START_TIME, SHIFT_DURATION_IN_HOURS
+from src.constants.constants import MORNING_SHIFT_START_TIME, NIGHT_SHIFT_START_TIME, SHIFT_DURATION_IN_HOURS
 
 schedule_columns = {
     'Quantity': 'quantity',

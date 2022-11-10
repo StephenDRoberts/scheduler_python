@@ -1,8 +1,6 @@
-from datetime import timedelta
-
 import pandas as pd
 
-from formatters.format_schedule import format_schedule
+from src.formatters import format_schedule
 
 schedule = pd.DataFrame({
     'Quantity': [2, 1],

@@ -1,10 +1,9 @@
 from datetime import datetime
 
-import pandas as pd
 from termcolor import colored
 
-from scheduler.helpers.create_empty_dataframes import create_empty_df_from_template
-from scheduler.helpers.employee_helpers import task_planner
+from src.scheduler.helpers.create_empty_dataframes import create_empty_df_from_template
+from src.scheduler.processors.process_task import process_task
 
 
 def schedule(tasks, collectors, preferences):
@@ -31,7 +30,6 @@ def schedule(tasks, collectors, preferences):
         })
 
     for shift_index, shift_end in enumerate(unique_shift_ends):
-        # if shift_index in range(0, 6):
         print(colored(f'{shift_index} - Shift End Time - {shift_end}', 'yellow'))
 
         partials_for_todays_shift = partially_processed_tasks.sort_values(
@@ -40,13 +38,13 @@ def schedule(tasks, collectors, preferences):
         )
 
         # filter for games that can be processed in this shift_end
-        tasks_in_shift = sorted_tasks_by_priority[
+        new_tasks_in_shift = sorted_tasks_by_priority[
             sorted_tasks_by_priority['earliest_processing_datetime'] < shift_end
             ]
 
         # filter out games that have already been processed
-        tasks_excl_fully_processed = tasks_in_shift[
-            ~tasks_in_shift.loc[:, 'task_id'].isin(processed_tasks['task_id'])]
+        tasks_excl_fully_processed = new_tasks_in_shift[
+            ~new_tasks_in_shift.loc[:, 'task_id'].isin(processed_tasks['task_id'])]
         tasks_excl_partially_processed = tasks_excl_fully_processed[
             ~tasks_excl_fully_processed.loc[:, 'task_id'].isin(partially_processed_tasks['task_id'])]
 
@@ -89,7 +87,6 @@ def schedule(tasks, collectors, preferences):
             partially_processed_tasks = state_after_process['partially_processed_tasks']
             scheduled_tasks = state_after_process['scheduled_tasks']
 
-    # convert overdue tasks to overdue games
     overdue_tasks = processed_tasks[(processed_tasks['process_end'] > processed_tasks['processing_deadline'])]
 
     return {
@@ -97,58 +94,3 @@ def schedule(tasks, collectors, preferences):
         'partially_processed_tasks': partially_processed_tasks,
         'overdue_tasks': overdue_tasks
     }
-
-
-def process_task(task, employees_on_shift, preferences, scheduled_tasks,
-                 processed_tasks, partially_processed_tasks):
-    competition = task['competition']
-    preferred_squad = preferences[preferences['competition'] == competition]['squad'].iloc[0]
-
-    collectors = employees_on_shift.apply(task_planner, axis=1, args=(scheduled_tasks, task, preferred_squad))
-
-    # if no one can pick up, move to the next shift
-    if (collectors['percentage_complete'] == 0).all():
-        print('all collectors percentage match current - cannot progress')
-        partial_task = pd.DataFrame([task])
-
-        partially_processed_tasks = pd.concat([partially_processed_tasks, partial_task])
-        return {
-            'processed_tasks': processed_tasks,
-            'partially_processed_tasks': partially_processed_tasks,
-            'scheduled_tasks': scheduled_tasks
-        }
-    else:
-        # otherwise, sort collectors by who can complete the complete the most, then by earliest
-        sorted_collectors = collectors.sort_values(
-            ['percentage_complete', 'employee_task_end'], ascending=[False, True]
-        )
-
-        assigned_collector = sorted_collectors.iloc[0]
-
-        # add task information to scheduled tasks
-        new_scheduled_task = pd.DataFrame([task])
-        new_scheduled_task['employee'] = assigned_collector['employee']
-        new_scheduled_task['process_start'] = assigned_collector['employee_task_start']
-        new_scheduled_task['process_end'] = assigned_collector['employee_task_end']
-        new_scheduled_task['rate'] = assigned_collector['rate']
-        new_scheduled_task['percentage_complete'] = assigned_collector['percentage_complete']
-
-        scheduled_tasks = pd.concat([scheduled_tasks, new_scheduled_task])
-
-        # if complete -> add to processed_tasks
-        if assigned_collector['percentage_complete'] == 1:
-            processed_tasks = pd.concat([processed_tasks, new_scheduled_task])
-
-            partially_processed_tasks = partially_processed_tasks[
-                ~partially_processed_tasks.loc[:, 'task_id'].isin(processed_tasks['task_id'])]
-
-        else:
-            partially_processed_tasks = pd.concat([partially_processed_tasks, new_scheduled_task])
-            # this is added to processed so we'll have 2 entries for any partially processed records for timetable purposes.
-            processed_tasks = pd.concat([processed_tasks, new_scheduled_task])
-
-        return {
-            'processed_tasks': processed_tasks,
-            'partially_processed_tasks': partially_processed_tasks,
-            'scheduled_tasks': scheduled_tasks
-        }

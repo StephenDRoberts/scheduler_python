@@ -2,17 +2,17 @@ import sys
 
 from termcolor import colored
 
-from formatters.format_competitions import format_competitions
-from formatters.format_matches import format_matches_to_tasks
-from formatters.format_preferences import format_preferences
-from formatters.format_priorities import format_priorities
-from formatters.format_schedule import format_schedule
-from formatters.transform import transform
-from joiners.preferences_joiner import hydrate_preferences
-from parser.parse_csv import parse
-from joiners.match_info_joiner import combine_match_info
-from scheduler.schedule import schedule
-from writer.write import write_to_csv
+from src.formatters.format_competitions import format_competitions
+from src.formatters.format_matches import format_matches_to_tasks
+from src.formatters.format_preferences import format_preferences
+from src.formatters.format_priorities import format_priorities
+from src.formatters.format_schedule import format_schedule
+from src.formatters.transform import transform
+from src.joiners.match_info_joiner import combine_match_info
+from src.joiners.preferences_joiner import hydrate_preferences
+from src.parser.parse_csv import parse
+from src.scheduler.schedule import schedule
+from src.writer.write import write_to_csv
 
 
 def main():
@@ -46,6 +46,8 @@ def main():
     write_to_csv(tasks_data)
 
     print(colored("Process complete!", 'green'))
+    print(colored("The current schedule can be found under /output/processed_tasks.csv", 'green'))
+    print(colored("Overdue tasks can be found under /output/overdue_tasks.csv", 'red'))
 
 
 if __name__ == '__main__':

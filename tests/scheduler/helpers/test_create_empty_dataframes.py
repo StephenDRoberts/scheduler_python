@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pandas as pd
 
-from scheduler.helpers.create_empty_dataframes import create_empty_df_from_template
+from src.scheduler.helpers.create_empty_dataframes import create_empty_df_from_template
 
 
 def test_should_return_empty_df_with_original_column_types():

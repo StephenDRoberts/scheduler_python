@@ -1,12 +1,12 @@
 # TODO DELETE!!!
-from parser.parse_csv import parse
+from src.parser.parse_csv import parse
 
 
 def test_full_main_not_changed():
     total_matches = parse('../../resources/matches.csv')
-    overdue = parse('../../output/overdue.csv')
+    overdue = parse('../../output/overdue_tasks.csv')
     prev_overdue = parse('../../output/ss/overdue.csv')
-    processed = parse('../../output/processed.csv')
+    processed = parse('../../output/processed_tasks.csv')
     prev_processed = parse('../../output/ss/processed.csv')
 
     # processed_matches = processed['match_id']

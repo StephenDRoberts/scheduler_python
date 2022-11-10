@@ -1,6 +1,6 @@
 import pandas as pd
 
-from formatters.format_matches import format_matches_to_tasks
+from src.formatters.format_matches import format_matches_to_tasks
 
 matches = pd.DataFrame({
     'ID': ['46330', '49520'],

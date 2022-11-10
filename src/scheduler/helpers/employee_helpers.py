@@ -2,7 +2,7 @@ import pandas as pd
 
 from datetime import timedelta
 
-from constants.constants import MIN_TASK_DURATION_HOURS, SECONDS_IN_ONE_HOUR, NON_PREFERENCE_TIME_ADJUSTMENT_HOURS
+from src.constants.constants import MIN_TASK_DURATION_HOURS, SECONDS_IN_ONE_HOUR, NON_PREFERENCE_TIME_ADJUSTMENT_HOURS
 
 
 def task_planner(employee, current_schedule_df, task, preference_squad):
@@ -35,8 +35,6 @@ def task_planner(employee, current_schedule_df, task, preference_squad):
     employee['rate'] = rate
     employee['percentage_complete'] = round(percentage_of_task_complete, 3)
 
-    print('here')
-    print(employee)
     return employee
 
 

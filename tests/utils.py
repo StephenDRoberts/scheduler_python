@@ -2,8 +2,7 @@ from datetime import datetime, timedelta
 
 import pandas as pd
 
-from constants.constants import AVERAGE_GAME_TIME_IN_MINUTES
-from scheduler.helpers.create_empty_dataframes import create_empty_df_from_template
+from src.constants.constants import AVERAGE_GAME_TIME_IN_MINUTES
 
 now = datetime.now()
 

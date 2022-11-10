@@ -1,16 +1,15 @@
 from datetime import timedelta, datetime
 
-import numpy as np
 import pandas as pd
 import pytest
-from termcolor import colored
 
-from constants.constants import AVERAGE_GAME_TIME_IN_MINUTES, SECONDS_IN_ONE_HOUR, MIN_TASK_DURATION_HOURS, \
+from src.constants.constants import AVERAGE_GAME_TIME_IN_MINUTES, MIN_TASK_DURATION_HOURS, \
     NON_PREFERENCE_TIME_ADJUSTMENT_HOURS
-from scheduler.helpers.create_empty_dataframes import create_empty_df_from_template
-from scheduler.helpers.employee_helpers import calculate_task_partial_hours_complete, get_employee_task_end_time, \
-    calculate_task_completion_percentage, get_earliest_processing_time_give_shift_and_start_time, calculate_rate, \
-    task_planner
+from src.scheduler.helpers.create_empty_dataframes import create_empty_df_from_template
+from src.scheduler.helpers.employee_helpers import calculate_task_completion_percentage, task_planner, \
+    get_earliest_processing_time_give_shift_and_start_time, get_employee_task_end_time, calculate_rate, \
+    calculate_task_partial_hours_complete
+
 from tests.utils import create_empty_task_df
 
 now = datetime.now()
@@ -307,9 +306,6 @@ class TestEarliestProcessingTime:
         assert empty_df.empty
         assert result == pd.to_datetime('2019-04-0120:00', format='%Y-%m-%d%H:%M')
 
-
-# class TestCalculateEmployeeTaskStartTime:
-#     def test_get_employee_task_start_time(self):
 
 class TestCalculateEmployeeTaskEndTime:
     def test_returns_shift_end_when_not_enough_time_to_complete_task(self):
