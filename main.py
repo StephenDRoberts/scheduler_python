@@ -11,6 +11,7 @@ from src.formatters.transform import transform
 from src.joiners.match_info_joiner import combine_match_info
 from src.joiners.preferences_joiner import hydrate_preferences
 from src.parser.parse_csv import parse
+from src.reporting.create_report import create
 from src.scheduler.schedule import schedule
 from src.writer.write import write_to_csv
 
@@ -19,6 +20,7 @@ def main():
     # Extract
     #  TODO defensive coding when file corrupt
     try:
+        print("Parsing CSVs")
         raw_priorities = parse('./resources/priorities.csv')
         raw_matches = parse('./resources/matches.csv')
         raw_competitions = parse('./resources/competitions.csv')
@@ -29,6 +31,7 @@ def main():
         sys.exit(1)
 
     # Transform
+    print("Transforming")
     formatted_priorities_df = transform(raw_priorities, format_priorities)
     formatted_tasks_df = transform(raw_matches, format_matches_to_tasks)
     formatted_competitions_df = transform(raw_competitions, format_competitions)
@@ -40,6 +43,7 @@ def main():
     complete_preferences = hydrate_preferences(formatted_preferences_df, formatted_competitions_df)
 
     # Run task
+    print("Running scheduler")
     tasks_data = schedule(combined_match_info, formatted_schedule_df, complete_preferences)
 
     # Load
@@ -49,6 +53,11 @@ def main():
     print(colored("The current schedule can be found under /output/processed_tasks.csv", 'green'))
     print(colored("Overdue tasks can be found under /output/overdue_tasks.csv", 'red'))
 
+    # Report
+    report = create(tasks_data)
+    print(colored(f'There were {report["completed_matches"]} fully completed matches', 'green'))
+    print(colored(f'- of which {report["overdue_matches"]} were overdue', 'red'))
+    print(colored(f'In addition there are {report["partially_complete_matches"]} partially complete', 'red'))
 
 if __name__ == '__main__':
     main()

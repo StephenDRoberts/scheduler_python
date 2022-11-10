@@ -55,6 +55,7 @@ information for competitions that don't have a preference squad. This is to aid 
 
 * The concept of an 'employee' is only with regards to a single shift. No employees span different shifts, which
   wouldn't happen in reality (ie) we create a new employee ID for each shift.
+* An employees id is `employee-{squad}-{date}-{shift}-{employee number}`
 
 #### Thoughts on code/best practices
 
