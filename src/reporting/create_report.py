@@ -1,7 +1,7 @@
 def create(tasks_data):
-    processed = tasks_data['processed']
-    partially = tasks_data['partially']
-    overdue = tasks_data['overdue']
+    processed = tasks_data['processed_tasks']
+    partially = tasks_data['partially_processed_tasks']
+    overdue = tasks_data['overdue_tasks']
 
     fully_processed_tasks = processed[processed['percentage_complete'] == 1]
 

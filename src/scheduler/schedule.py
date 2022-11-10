@@ -30,7 +30,7 @@ def schedule(tasks, collectors, preferences):
         })
 
     for shift_index, shift_end in enumerate(unique_shift_ends):
-        print(colored(f'{shift_index} - Shift End Time - {shift_end}', 'yellow'))
+        print(colored(f'Shift {shift_index}/{len(unique_shift_ends)} - {shift_end}', 'yellow'))
 
         partials_for_todays_shift = partially_processed_tasks.sort_values(
             by=['processing_deadline', 'percentage_complete'],
