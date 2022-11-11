@@ -242,7 +242,6 @@ class TestCalculatePartialHours:
         assert result == expected_hours_complete
 
 
-#
 class TestEarliestProcessingTime:
     default_task_list = pd.DataFrame({
         'task': ['task_1', 'task_1'],
