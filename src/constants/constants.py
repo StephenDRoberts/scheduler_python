@@ -9,4 +9,3 @@ MAX_TASKS_PER_EMPLOYEE = 4
 
 # Time based helper constants
 SECONDS_IN_ONE_HOUR = 60 * 60
-

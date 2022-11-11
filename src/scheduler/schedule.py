@@ -2,6 +2,7 @@ from datetime import datetime
 
 from termcolor import colored
 
+from src.constants.constants import MAX_TASKS_PER_EMPLOYEE
 from src.scheduler.helpers.create_empty_dataframes import create_empty_df_from_template
 from src.scheduler.processors.process_task import process_task
 
@@ -16,11 +17,11 @@ def schedule(tasks, collectors, preferences):
 
     # Create empty dataframes to track progress
     processed_tasks = create_empty_df_from_template(sorted_tasks_by_priority, {
-            'employee': '',
-            'process_start': datetime.now(),
-            'process_end': datetime.now(),
-            'percentage_complete': 0,
-        })
+        'employee': '',
+        'process_start': datetime.now(),
+        'process_end': datetime.now(),
+        'percentage_complete': 0,
+    })
     partially_processed_tasks = create_empty_df_from_template(
         sorted_tasks_by_priority, {
             'percentage_complete': 0,
@@ -97,7 +98,6 @@ def schedule(tasks, collectors, preferences):
     processed_sorted_by_shift = processed_tasks.sort_values(by='shift_end_datetime', ascending=True)
     partials_sorted_by_shift = partially_processed_tasks.sort_values(by='shift_end_datetime', ascending=True)
     overdues_sorted_by_shift = overdue_tasks.sort_values(by='shift_end_datetime', ascending=True)
-
 
     return {
         'processed_tasks': processed_sorted_by_shift,

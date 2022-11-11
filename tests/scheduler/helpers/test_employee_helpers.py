@@ -93,7 +93,7 @@ class TestTaskPlanner:
         employee_diff_task_end = pd.to_datetime('2019-04-01 22:00:00')
 
         schedule = timetable_builder(prev_task_start, prev_task_end, 'task_1', 1, 'diff_employee')
-        employee_task_schedule = timetable_builder(employee_diff_task_start, employee_diff_task_end, 'task_2', 1,)
+        employee_task_schedule = timetable_builder(employee_diff_task_start, employee_diff_task_end, 'task_2', 1, )
         schedule = pd.concat([schedule, employee_task_schedule])
 
         result = task_planner(employee, schedule, task, 'D+')
@@ -122,7 +122,7 @@ class TestTaskPlanner:
         employee_diff_task_end = pd.to_datetime('2019-04-02 00:00:00')
 
         schedule = timetable_builder(prev_task_start, prev_task_end, 'task_1', 1, 'diff_employee')
-        employee_task_schedule = timetable_builder(employee_diff_task_start, employee_diff_task_end, 'task_2', 1,)
+        employee_task_schedule = timetable_builder(employee_diff_task_start, employee_diff_task_end, 'task_2', 1, )
         schedule = pd.concat([schedule, employee_task_schedule])
 
         result = task_planner(employee, schedule, task, 'D+')

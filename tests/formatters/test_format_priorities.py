@@ -17,4 +17,3 @@ def test_should_relabel_prriorities_df():
     result = format_priorities(priorities)
 
     pd.testing.assert_frame_equal(result, expected)
-

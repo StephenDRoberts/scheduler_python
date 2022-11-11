@@ -18,7 +18,7 @@ From the root directory, run the following command to start the scheduler task.
  poetry run python main.py                                              
 ```
 
-The scheduler currently takes between 5-10 minutes to complete. 
+The scheduler currently takes between 5-10 minutes to complete.
 
 ## Testing
 
@@ -43,7 +43,7 @@ Holds some configuration settings for task durations, capacity, etc as well as t
 ### Parser
 
 There is one parser method that takes in a filepath, reads the CSV if present and loads into
-a [pandas](https://pandas.pydata.org/) dataframe.
+a [pandas](https://pandas.pydata.org/) dataframe. Currently input files are saved under the `/resources` folder.
 
 ### Formatters
 

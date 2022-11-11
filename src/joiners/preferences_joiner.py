@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 def hydrate_preferences(preferences_df, competitions_df):
     common = preferences_df.merge(competitions_df, on=['competition'])
     uncommon = competitions_df[(~competitions_df['competition'].isin(common['competition']))]

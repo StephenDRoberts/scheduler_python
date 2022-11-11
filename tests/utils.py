@@ -24,23 +24,10 @@ default_entries = [{
 }]
 
 
-# def create_populated_task_df(entries=default_entries):
-#     for entry in len(entries):
-#         for key in entry:
-#             default_entries[key] = entry[key]
-#
-#     return pd.DataFrame(entries_dict)
-
-
 def create_empty_task_df():
     df = pd.DataFrame(default_entries[0])
     cleared_df = df.iloc[0:0]
 
-
-
     print(pd.concat([cleared_df['process_end'], pd.Series({'process_end': now})]).max())
 
     return cleared_df
-
-
-

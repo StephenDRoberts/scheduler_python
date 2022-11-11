@@ -20,4 +20,3 @@ def test_should_relabel_competitions_df():
 
     assert result[result['competition'] == 'Premier League']['squad'].item() == 'A'
     assert result[result['competition'] == 'Championship']['squad'].item() == 'B'
-
