@@ -1,6 +1,6 @@
 import pandas as pd
 
-from formatters.format_matches import format_matches_to_tasks
+from src.formatters.format_matches import format_matches_to_tasks
 
 matches = pd.DataFrame({
     'ID': ['46330', '49520'],
@@ -30,6 +30,8 @@ def test_should_format_matches_to_tasks_with_character_encoding():
             segunda_earliest_processing_time
         ],
         'team': ['team-HOME', 'team-AWAY', 'team-HOME', 'team-AWAY'],
+        'task_id': ['46330-HOME', '46330-AWAY', '49520-HOME', '49520-AWAY'],
+        'percentage_complete': [0.0, 0.0, 0.0, 0.0]
     })
 
     result = format_matches_to_tasks(matches)

@@ -1,6 +1,6 @@
 import pandas as pd
 
-from formatters.format_competitions import format_competitions
+from src.formatters.format_competitions import format_competitions
 
 competitions = pd.DataFrame({
     'Country': ['England', 'England', 'FIFA,Women\'s'],
@@ -23,11 +23,11 @@ def test_should_relabel_competitions_df():
 
 def test_should_not_format_label_not_in_dictionary():
     unused_label_competitions = pd.DataFrame({
-    'Country': ['England', 'England', 'FIFA,Women\'s'],
-    'Competition': ['Championship', 'Premier League', 'World Cup'],
-    'Priority': [1, 1, 1],
-    'New Label': [2, 2, 2]
-})
+        'Country': ['England', 'England', 'FIFA,Women\'s'],
+        'Competition': ['Championship', 'Premier League', 'World Cup'],
+        'Priority': [1, 1, 1],
+        'New Label': [2, 2, 2]
+    })
 
     expected = pd.DataFrame({
         'country': unused_label_competitions['Country'],

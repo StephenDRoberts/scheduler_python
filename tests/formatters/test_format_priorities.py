@@ -1,6 +1,6 @@
 import pandas as pd
 
-from formatters.format_priorities import format_priorities
+from src.formatters.format_priorities import format_priorities
 
 priorities = pd.DataFrame({
     'Priority Class': [1, 2, 3],
@@ -8,7 +8,7 @@ priorities = pd.DataFrame({
 })
 
 
-def test_should_relabel_competitions_df():
+def test_should_relabel_prriorities_df():
     expected = pd.DataFrame({
         'priority_class': priorities['Priority Class'],
         'priority_hours': priorities['Hours'],
@@ -17,4 +17,3 @@ def test_should_relabel_competitions_df():
     result = format_priorities(priorities)
 
     pd.testing.assert_frame_equal(result, expected)
-
