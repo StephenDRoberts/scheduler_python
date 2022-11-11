@@ -3,12 +3,12 @@ import pandas as pd
 from src.scheduler.helpers.employee_helpers import task_planner
 
 
-def process_task(task, employees_on_shift, preferences, scheduled_tasks,
+def process_task(task, employees_on_shift, preferences,
                  processed_tasks, partially_processed_tasks):
     competition = task['competition']
     preferred_squad = preferences[preferences['competition'] == competition]['squad'].iloc[0]
 
-    planned_employees = employees_on_shift.apply(task_planner, axis=1, args=(scheduled_tasks, task, preferred_squad))
+    planned_employees = employees_on_shift.apply(task_planner, axis=1, args=(processed_tasks, task, preferred_squad))
 
     # if no one can pick up, add task to partials, move to the next shift
     if (planned_employees['percentage_complete'] == 0).all():
@@ -19,7 +19,6 @@ def process_task(task, employees_on_shift, preferences, scheduled_tasks,
         return {
             'processed_tasks': processed_tasks,
             'partially_processed_tasks': partially_processed_tasks,
-            'scheduled_tasks': scheduled_tasks
         }
     else:
         # otherwise, sort planned_employees by who can complete the most, then by earliest
@@ -31,7 +30,6 @@ def process_task(task, employees_on_shift, preferences, scheduled_tasks,
 
         # add task information to scheduled tasks
         new_scheduled_task = build_new_scheduled_task(task, assigned_employee)
-        scheduled_tasks = pd.concat([scheduled_tasks, new_scheduled_task])
 
         # if complete -> add to processed_tasks
         if assigned_employee['percentage_complete'] == 1:
@@ -48,7 +46,6 @@ def process_task(task, employees_on_shift, preferences, scheduled_tasks,
         return {
             'processed_tasks': processed_tasks,
             'partially_processed_tasks': partially_processed_tasks,
-            'scheduled_tasks': scheduled_tasks
         }
 
 

@@ -1,6 +1,6 @@
 import pandas as pd
 
-from src.formatters import format_preferences
+from src.formatters.format_preferences import format_preferences
 
 preferences = pd.DataFrame({
     'Competition': ['Premier League', 'Championship'],

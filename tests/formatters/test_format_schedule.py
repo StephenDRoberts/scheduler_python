@@ -1,6 +1,6 @@
 import pandas as pd
 
-from src.formatters import format_schedule
+from src.formatters.format_schedule import format_schedule
 
 schedule = pd.DataFrame({
     'Quantity': [2, 1],
@@ -24,7 +24,7 @@ def test_should_format_schedule_df():
         'squad': ['A', 'A', 'B'],
         'shift_start_datetime': [shift_a_start_time, shift_a_start_time, shift_b_start_time],
         'shift_end_datetime': [shift_a_end_time, shift_a_end_time, shift_b_end_time],
-        'employee': ['employee-A-2019-04-01-1', 'employee-A-2019-04-01-2', 'employee-B-2019-04-02-1']
+        'employee': ['employee-A-2019-04-01-Morning-1', 'employee-A-2019-04-01-Morning-2', 'employee-B-2019-04-02-Night-1']
     })
 
     result = format_schedule(schedule)

@@ -49,7 +49,10 @@ def main():
     # Load
     write_to_csv(tasks_data)
 
-    print(colored("Process complete!", 'green'))
+    print('*****************')
+    print("Process complete!")
+    print('*****************')
+
     print(colored("The current schedule can be found under /output/processed_tasks.csv", 'green'))
     print(colored("Overdue tasks can be found under /output/overdue_tasks.csv", 'red'))
 
@@ -57,7 +60,7 @@ def main():
     report = create(tasks_data)
     print(colored(f'There were {report["completed_matches"]} fully completed matches', 'green'))
     print(colored(f'- of which {report["overdue_matches"]} were overdue', 'red'))
-    print(colored(f'In addition there are {report["partially_complete_matches"]} partially complete', 'red'))
+    print(colored(f'In addition there are {report["partially_complete_matches"]} partially complete', 'yellow'))
 
 if __name__ == '__main__':
     main()

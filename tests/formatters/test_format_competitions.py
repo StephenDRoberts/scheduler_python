@@ -1,6 +1,6 @@
 import pandas as pd
 
-from src.formatters import format_competitions
+from src.formatters.format_competitions import format_competitions
 
 competitions = pd.DataFrame({
     'Country': ['England', 'England', 'FIFA,Women\'s'],

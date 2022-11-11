@@ -7,6 +7,9 @@
 This project was made using the [Poetry](https://python-poetry.org/docs/basic-usage/) dependency management tool.
 As such, the poetry environment comes built with the dependencies required to run.
 
+Follow the instructions on [poetry's website](https://python-poetry.org/docs/) to download the tool. At the time of
+writing this requires Python 3.7+.
+
 From the root directory, run the following command to start the scheduler task.
 
 ```
@@ -38,7 +41,8 @@ a [pandas](https://pandas.pydata.org/) dataframe.
 
 Each filetype has its own formatter. Their job is to clean and format the data in a way that makes the processes later
 on easier.
-For instance, in [format_schedule](src/formatters/format_schedule.py), additional information is for shift start/end times.
+For instance, in [format_schedule](src/formatters/format_schedule.py), additional information is for shift start/end
+times.
 The schedule is extended to create employee (collectors) IDs for each employee working on a shift. Similarly, matches
 have been extended to tasks where each task represents analysing on a specific team in a match.
 The formatters are also responsible for relabeling columns in their respective dataframes.
