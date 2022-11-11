@@ -10,6 +10,12 @@ As such, the poetry environment comes built with the dependencies required to ru
 Follow the instructions on [poetry's website](https://python-poetry.org/docs/) to download the tool. At the time of
 writing this requires Python 3.7+.
 
+After poetry is installed, run the following command to install dependencies:
+
+```
+poetry install 
+```
+
 ## Running
 
 From the root directory, run the following command to start the scheduler task.
@@ -18,7 +24,8 @@ From the root directory, run the following command to start the scheduler task.
  poetry run python main.py                                              
 ```
 
-The scheduler currently takes between 5-10 minutes to complete.
+The scheduler currently takes between 5-10 minutes to complete. Reducing the `MAX_TASKS_PER_EMPLOYEE` variable
+in `constants` may help reduce the time spent, but at the expense of tasks scheduled.
 
 ## Testing
 

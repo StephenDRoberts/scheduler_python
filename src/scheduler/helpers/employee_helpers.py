@@ -51,7 +51,7 @@ def get_employee_task_start_time(task, partial_records_for_task, employee, emplo
     if employee_timetable.empty:
         employee_start = earliest_processing_start_given_shift_and_schedule
     else:
-        #   get scheduled task start and end times
+        # get scheduled task start and end times
         employee_scheduled_task_start = min(employee_timetable['process_start'])
         employee_scheduled_task_end = max(employee_timetable['process_end'])
 
@@ -66,8 +66,6 @@ def get_employee_task_start_time(task, partial_records_for_task, employee, emplo
 
     return employee_start
 
-
-# def get_employee_task_start_time2(task_earliest_processing_time, shift_start, employee_scheduled_timetable)
 
 def get_earliest_processing_time_give_shift_and_start_time(
         time_task_is_ready_for_process, shift_start, partial_records_for_task
