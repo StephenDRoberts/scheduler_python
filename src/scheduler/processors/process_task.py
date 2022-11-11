@@ -40,7 +40,6 @@ def process_task(task, employees_on_shift, preferences,
 
         else:
             partially_processed_tasks = pd.concat([partially_processed_tasks, new_scheduled_task])
-            # this is added to processed so we'll have 2 entries for any partially processed records for timetable purposes.
             processed_tasks = pd.concat([processed_tasks, new_scheduled_task])
 
         return {

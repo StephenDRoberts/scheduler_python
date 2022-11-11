@@ -6,7 +6,7 @@ from src.constants.constants import MIN_TASK_DURATION_HOURS, SECONDS_IN_ONE_HOUR
 
 
 def task_planner(employee, current_schedule_df, task, preference_squad):
-    # calculate employees rate of completion
+    # calculate employee's rate of completion
     rate = calculate_rate(employee['squad'], preference_squad)
 
     # calculate amount of task already completed
