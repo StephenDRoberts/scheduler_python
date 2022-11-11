@@ -31,7 +31,6 @@ def schedule(tasks, collectors, preferences):
     )
 
     for shift_index, shift_end in enumerate(unique_shift_ends):
-        # if shift_index in range(0,6):
         print(colored(f'Shift {shift_index + 1}/{len(unique_shift_ends)} - {shift_end}', 'yellow'))
 
         partials_for_todays_shift = partially_processed_tasks.sort_values(
