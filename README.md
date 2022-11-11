@@ -152,3 +152,4 @@ The planner reports back with start/end times and percentage complete for the em
 * Validators to ensure columns data types are as expected. Defensive coding if value required isn't as expected.
 * Mock test functions to ensure methods called with expected parameters and for setting up tests where underlying
   function calls many areas.
+* Look into PEP8.
