@@ -67,8 +67,6 @@ def get_employee_task_start_time(task, partial_records_for_task, employee, emplo
     return employee_start
 
 
-# def get_employee_task_start_time2(task_earliest_processing_time, shift_start, employee_scheduled_timetable)
-
 def get_earliest_processing_time_give_shift_and_start_time(
         time_task_is_ready_for_process, shift_start, partial_records_for_task
 ):

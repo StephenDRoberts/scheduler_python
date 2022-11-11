@@ -1,4 +1,5 @@
 import sys
+from datetime import datetime
 
 from termcolor import colored
 
@@ -17,6 +18,7 @@ from src.writer.write import write_to_csv
 
 
 def main():
+    process_start = datetime.now()
     # Extract
     #  TODO defensive coding when file corrupt
     try:
@@ -49,9 +51,13 @@ def main():
     # Load
     write_to_csv(tasks_data)
 
+    process_end = datetime.now()
+
     print('*****************')
     print("Process complete!")
     print('*****************')
+    print(f'The scheduler took {process_end - process_start} to run')
+
 
     print(colored("The current schedule can be found under /output/processed_tasks.csv", 'green'))
     print(colored("Overdue tasks can be found under /output/overdue_tasks.csv", 'red'))
