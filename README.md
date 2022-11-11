@@ -18,6 +18,8 @@ From the root directory, run the following command to start the scheduler task.
  poetry run python main.py                                              
 ```
 
+The scheduler currently takes between 5-10 minutes to complete. 
+
 ## Testing
 
 The project uses [pytest](https://docs.pytest.org/en/7.2.x/) for the test framework.
@@ -33,6 +35,10 @@ poetry run pytest
 
 `main.py` is the entry point for the project. This file orchestrates the Extract/Transform/Load areas of the
 application.
+
+### Constants
+
+Holds some configuration settings for task durations, capacity, etc as well as time helper constants.
 
 ### Parser
 
@@ -85,7 +91,8 @@ into `partially_processed_tasks`.
 
 ### Task_Planner
 
-This is responsible for checking when the task under consideration can be picked up by an employee. It starts by searching
+This is responsible for checking when the task under consideration can be picked up by an employee. It starts by
+searching
 the `processed_task` dataframe for any previous processing efforts for that task. From there it calculates the hours
 remaining for completion given the employees speed for completion (1.0 if the collector is in the preference squad for
 the competition, 0.8 otherwise).
@@ -112,6 +119,9 @@ The planner reports back with start/end times and percentage complete for the em
   below).
 * Tasks can't be stopped/started unless it's the end of a shift. Because of this, collectors cannot process a task
   before another scheduled task unless it can be completed.
+* Assumed max amount of tasks any employee can pick up is 4. In reality it is probably more like 3 if an employee picks
+  up a partial task first, then completes a full task, and then finishes by partially completing a 3rd. This was put in
+  to avoid any unnecessary calculation when it's thought no employee can't pick up the task.
 
 #### Issues with the algorithm
 
@@ -124,8 +134,16 @@ The planner reports back with start/end times and percentage complete for the em
 * Tasks are ordered by processing deadline. However, I've not taken into account whether deferring the processing of a
   match to another shift would make it quicker.
 
-#### Thoughts on code/best practices
+#### Next steps
 
+* Look into better algorithm construciton. Possibly using
+  more [genetic algorithm](https://en.wikipedia.org/wiki/Genetic_algorithm_scheduling#:~:text=To%20apply%20a%20genetic%20algorithm,start%20time%20represents%20a%20gene.)
+  .
+* Allow for tasks to be start/stopped at any point.
+* Use single task dataframe rather than keep acount of processed and partials separately. Would allow for more
+  confidence rather than having the potential for one dataframe to be out of sync with another.
+* It would be better to have a more robust capacity check rather than just looking at an arbitrary amount of tasks I
+  think they might be able to handle in a shift. This would also
 * In [format_matches_to_tasks](src/formatters/format_matches.py) I would have liked to have checked/applied language
   decoding programatically across any series that needed it. However, in the interest of time applying to
   the `competition`

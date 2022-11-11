@@ -17,7 +17,6 @@ class TestCreateReport:
             'percentage_complete': [0.3, 0.4]
         })
 
-
         overdue_df = pd.DataFrame({
             'task_id': ['task_1_HOME', 'task_1_AWAY'],
             'match_id': ['match_1', 'match_1'],
@@ -36,8 +35,4 @@ class TestCreateReport:
             'overdue_tasks': overdue_df
         })
 
-        print(expected)
-        print(result)
         assert result == expected
-
-
