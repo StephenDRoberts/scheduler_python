@@ -136,15 +136,19 @@ The planner reports back with start/end times and percentage complete for the em
 
 #### Next steps
 
-* Look into better algorithm construciton. Possibly using
+* Look into better algorithm construction. Possibly using
   more [genetic algorithm](https://en.wikipedia.org/wiki/Genetic_algorithm_scheduling#:~:text=To%20apply%20a%20genetic%20algorithm,start%20time%20represents%20a%20gene.)
   .
 * Allow for tasks to be start/stopped at any point.
-* Use single task dataframe rather than keep acount of processed and partials separately. Would allow for more
+* Use single task dataframe rather than keep account of processed and partials separately. Would allow for more
   confidence rather than having the potential for one dataframe to be out of sync with another.
 * It would be better to have a more robust capacity check rather than just looking at an arbitrary amount of tasks I
   think they might be able to handle in a shift. This would also
 * In [format_matches_to_tasks](src/formatters/format_matches.py) I would have liked to have checked/applied language
   decoding programatically across any series that needed it. However, in the interest of time applying to
-  the `competition`
+  the `competition`.
   seemed sensible given this dataset.
+* Defensive coding around corrupt csv files.
+* Validators to ensure columns data types are as expected. Defensive coding if value required isn't as expected.
+* Mock test functions to ensure methods called with expected parameters and for setting up tests where underlying
+  function calls many areas.

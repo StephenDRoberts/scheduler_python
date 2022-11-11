@@ -35,6 +35,5 @@ def test_should_format_matches_to_tasks_with_character_encoding():
     })
 
     result = format_matches_to_tasks(matches)
-    print(result)
-    print(expected)
+
     pd.testing.assert_frame_equal(result, expected)
